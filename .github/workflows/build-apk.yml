@@ -1,0 +1,45 @@
+name: Build SHADOW SPY APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract project ZIP
+        run: |
+          ZIP=$(find . -maxdepth 1 -name '*.zip' -print -quit)
+          test -n "$ZIP"
+          mkdir project
+          unzip "$ZIP" -d project
+
+      - name: Build APK
+        run: gradle -p project assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHADOW-SPY-APK
+          path: project/app/build/outputs/apk/debug/app-debug.apk
+          
